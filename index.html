@@ -323,6 +323,12 @@
   width:100%; min-width:170px; min-height:42px; resize:vertical; border:1px solid #d8dde3; border-radius:7px;
   padding:6px 8px; font-family:inherit; font-size:12.5px;
 }
+.prep-sync-status{
+  font-size:12px; color:#64748b; padding:8px 10px; border:1px solid var(--border); background:#f8fafc; border-radius:10px;
+}
+.prep-sync-status.ok{ color:#166534; background:#f0fdf4; border-color:#bbf7d0; }
+.prep-sync-status.warn{ color:#92400e; background:#fffbeb; border-color:#fde68a; }
+.prep-sync-status.error{ color:#b91c1c; background:#fef2f2; border-color:#fecaca; }
 .prep-muted{ color:#64748b; line-height:1.55; }
 .prep-actions{ display:flex; gap:8px; flex-wrap:wrap; }
 @media (max-width:900px){
@@ -754,6 +760,17 @@ const PREP_CHECKLIST_DEFAULT = [
 ];
 
 const STORE_KEY = "reeds_schedule_data_v1";
+const PREP_SHEET_API_URL = "";
+const PREP_SHEET_API_ENABLED = PREP_SHEET_API_URL.trim().startsWith("https://");
+const PREP_SHEET_STATUS_DONE = "已完成";
+const PREP_SHEET_STATUS_TODO = "待開始";
+let prepSheetSync = {
+  enabled: PREP_SHEET_API_ENABLED,
+  loading: false,
+  saving: false,
+  error: "",
+  lastSync: ""
+};
 let data = loadData();
 let state = { group: "home", grade: "1", sem: "1", view: "portal", classId: "1A" };
 
@@ -789,6 +806,116 @@ function ensurePrepChecklist(d){
       note: old.note || ""
     });
   });
+}
+
+function mergePrepChecklistRows(rows){
+  if(!Array.isArray(rows)) return;
+  ensurePrepChecklist(data);
+  const byId = {};
+  rows.forEach(item=>{ if(item && item.id) byId[item.id] = item; });
+  data.prepChecklist = data.prepChecklist.map(row=>{
+    const remote = byId[row.id];
+    if(!remote) return row;
+    const done = typeof remote.done === 'boolean'
+      ? remote.done
+      : String(remote.status || '').trim() === PREP_SHEET_STATUS_DONE;
+    return Object.assign({}, row, {
+      done,
+      checkedAt: remote.checkedAt || remote.completedAt || "",
+      note: remote.note || remote.nextStep || ""
+    });
+  });
+}
+
+function prepSheetStatusText(){
+  if(!prepSheetSync.enabled) return '尚未設定 Google Sheet API，檢核狀態暫存於本機瀏覽器';
+  if(prepSheetSync.loading) return '正在讀取 Google Sheet...';
+  if(prepSheetSync.saving) return '正在寫入 Google Sheet...';
+  if(prepSheetSync.error) return 'Google Sheet 同步失敗：' + prepSheetSync.error;
+  if(prepSheetSync.lastSync) return '已連接 Google Sheet，最後同步：' + prepSheetSync.lastSync;
+  return '已設定 Google Sheet API，可按「同步 Google Sheet」讀取最新狀態';
+}
+
+function prepSheetStatusClass(){
+  if(!prepSheetSync.enabled) return 'prep-sync-status warn';
+  if(prepSheetSync.error) return 'prep-sync-status error';
+  if(prepSheetSync.lastSync) return 'prep-sync-status ok';
+  return 'prep-sync-status';
+}
+
+async function fetchPrepSheet(payload){
+  const options = payload ? {
+    method: 'POST',
+    headers: {'Content-Type':'text/plain;charset=utf-8'},
+    body: JSON.stringify(payload)
+  } : {};
+  const res = await fetch(PREP_SHEET_API_URL, options);
+  const text = await res.text();
+  let json = null;
+  try{ json = JSON.parse(text); }catch(err){}
+  if(!res.ok || !json || json.ok === false){
+    throw new Error((json && json.error) || ('HTTP ' + res.status));
+  }
+  return json;
+}
+
+async function loadPrepChecklistFromSheet(options){
+  if(!prepSheetSync.enabled) return;
+  const silent = options && options.silent;
+  prepSheetSync.loading = true;
+  prepSheetSync.error = "";
+  if(!silent && state.view === 'prepChecklist') renderContent();
+  try{
+    const json = await fetchPrepSheet();
+    mergePrepChecklistRows(json.rows);
+    prepSheetSync.lastSync = new Date().toLocaleString('zh-TW');
+    saveData();
+  }catch(err){
+    prepSheetSync.error = err.message || String(err);
+  }finally{
+    prepSheetSync.loading = false;
+    if(state.view === 'prepChecklist') renderContent();
+  }
+}
+
+async function syncPrepChecklistRow(row){
+  if(!prepSheetSync.enabled) return;
+  prepSheetSync.saving = true;
+  prepSheetSync.error = "";
+  try{
+    const json = await fetchPrepSheet({
+      action: 'update',
+      id: row.id,
+      done: !!row.done,
+      checkedAt: row.checkedAt || "",
+      note: row.note || ""
+    });
+    if(json.row) mergePrepChecklistRows([json.row]);
+    prepSheetSync.lastSync = new Date().toLocaleString('zh-TW');
+    saveData();
+  }catch(err){
+    prepSheetSync.error = err.message || String(err);
+  }finally{
+    prepSheetSync.saving = false;
+    if(state.view === 'prepChecklist') renderContent();
+  }
+}
+
+async function resetPrepChecklistOnSheet(){
+  if(!prepSheetSync.enabled) return;
+  prepSheetSync.saving = true;
+  prepSheetSync.error = "";
+  try{
+    const json = await fetchPrepSheet({ action: 'reset' });
+    mergePrepChecklistRows(json.rows);
+    prepSheetSync.lastSync = new Date().toLocaleString('zh-TW');
+    saveData();
+  }catch(err){
+    prepSheetSync.error = err.message || String(err);
+  }finally{
+    prepSheetSync.saving = false;
+    if(state.view === 'prepChecklist') renderContent();
+  }
 }
 
 const OPERATION_VIEWS = ["org","finance","teachingLoad","classSchedule","prepChecklist"];
@@ -1981,8 +2108,13 @@ function renderPrepChecklist(el){
 
   const sub = document.createElement('div');
   sub.className = 'subtitle';
-  sub.textContent = '依籌備計畫八期拆成可執行檢核項目；點擊圓形檢核鈕即可標記完成，狀態會儲存在本機瀏覽器，並可透過 JSON 匯出備份。';
+  sub.textContent = '依籌備計畫八期拆成可執行檢核項目；點擊圓形檢核鈕即可標記完成。設定 Google Sheet API 後，完成狀態與備註會同步到雲端表格。';
   el.appendChild(sub);
+
+  const syncStatus = document.createElement('div');
+  syncStatus.className = prepSheetStatusClass();
+  syncStatus.textContent = prepSheetStatusText();
+  el.appendChild(syncStatus);
 
   const toolbar = document.createElement('div');
   toolbar.className = 'prep-toolbar';
@@ -1994,6 +2126,12 @@ function renderPrepChecklist(el){
   progress.appendChild(fill);
   const actions = document.createElement('div');
   actions.className = 'prep-actions';
+  const syncBtn = document.createElement('button');
+  syncBtn.className = 'btn';
+  syncBtn.textContent = prepSheetSync.loading ? '同步中...' : '同步 Google Sheet';
+  syncBtn.disabled = !prepSheetSync.enabled || prepSheetSync.loading || prepSheetSync.saving;
+  syncBtn.onclick = ()=> loadPrepChecklistFromSheet();
+  actions.appendChild(syncBtn);
   const resetBtn = document.createElement('button');
   resetBtn.className = 'btn';
   resetBtn.textContent = '重置檢核狀態';
@@ -2002,6 +2140,7 @@ function renderPrepChecklist(el){
     data.prepChecklist = PREP_CHECKLIST_DEFAULT.map(item=>Object.assign({}, item, {done:false, checkedAt:"", note:""}));
     saveData();
     renderContent();
+    resetPrepChecklistOnSheet();
   };
   actions.appendChild(resetBtn);
   toolbar.appendChild(progress);
@@ -2056,6 +2195,7 @@ function renderPrepChecklist(el){
         row.checkedAt = row.done ? todayISO() : '';
         saveData();
         renderContent();
+        syncPrepChecklistRow(row);
       };
       checkTd.appendChild(btn);
       if(row.checkedAt){
@@ -2097,6 +2237,7 @@ function renderPrepChecklist(el){
       note.onchange = ()=>{
         row.note = note.value.trim();
         saveData();
+        syncPrepChecklistRow(row);
       };
       noteTd.appendChild(note);
 
@@ -2254,6 +2395,7 @@ document.getElementById('btnPrint').onclick = ()=> window.print();
 
 applyInitialHash();
 render();
+loadPrepChecklistFromSheet({silent:true});
 </script>
 </body>
 </html>
