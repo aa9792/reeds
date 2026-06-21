@@ -1,0 +1,10 @@
+node_modules/
+
+# Local verification screenshots
+reeds-home-*.png
+reeds-prep-checklist.png
+
+# Generated workbook QA previews/logs
+outputs/**/*.png
+outputs/**/*.inspect.ndjson
+
