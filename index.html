@@ -813,11 +813,11 @@ function loadData(){
     if(raw) d = JSON.parse(raw);
   }catch(e){}
   if(!d) d = JSON.parse(JSON.stringify(SCHOOL_DATA));
-  // 確保舊版本資料含有新增的校務營運區塊
+  // 確保舊版本資料含有仍在使用的校務營運區塊
   if(!d.org) d.org = JSON.parse(JSON.stringify(SCHOOL_DATA.org));
-  if(!d.finance) d.finance = JSON.parse(JSON.stringify(SCHOOL_DATA.finance));
-  if(!d.finance.params) d.finance.params = JSON.parse(JSON.stringify(SCHOOL_DATA.finance.defaultParams));
-  if(!d.teachingLoad) d.teachingLoad = JSON.parse(JSON.stringify(SCHOOL_DATA.teachingLoad));
+  // 經費預算與舊版配課統計頁面已移除；同步清除既有瀏覽器儲存資料。
+  delete d.finance;
+  delete d.teachingLoad;
   if(!d.classSchedules) d.classSchedules = JSON.parse(JSON.stringify(SCHOOL_DATA.classSchedules));
   ensurePrepChecklist(d);
   return d;
@@ -950,7 +950,7 @@ async function resetPrepChecklistOnSheet(){
   }
 }
 
-const OPERATION_VIEWS = ["org","firstYearStaffing","finance","teachingLoad","classSchedule","prepChecklist"];
+const OPERATION_VIEWS = ["org","firstYearStaffing","classSchedule","prepChecklist"];
 const CURRICULUM_VIEWS = ["framework","selEslMap","curriculum","schedule"];
 
 const VIEW_LABELS = {
@@ -966,8 +966,6 @@ const VIEW_LABELS = {
   operations: [
     { value: 'org', label: '組織職掌' },
     { value: 'firstYearStaffing', label: '第一年教師配課' },
-    { value: 'finance', label: '經費預算估算' },
-    { value: 'teachingLoad', label: '配課統計' },
     { value: 'classSchedule', label: '班級課表' },
     { value: 'prepChecklist', label: '籌備檢核' }
   ]
@@ -1049,8 +1047,6 @@ function renderContent(){
   if(state.group === 'operations'){
     if(state.view === 'org') renderOrg(el);
     else if(state.view === 'firstYearStaffing') renderFirstYearStaffing(el);
-    else if(state.view === 'finance') renderFinance(el);
-    else if(state.view === 'teachingLoad') renderTeachingLoad(el);
     else if(state.view === 'prepChecklist') renderPrepChecklist(el);
     else renderClassSchedule(el);
     return;
