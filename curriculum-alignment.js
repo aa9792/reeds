@@ -1,6 +1,6 @@
 /* Align monthly plans and weekly schedules with the SEL x ESL curriculum map. */
 (function(){
-  const VERSION=4;
+  const VERSION=5;
   const deep=v=>JSON.parse(JSON.stringify(v));
   function replaceFirst(schedule,from,to){
     if(!schedule) return;
@@ -40,7 +40,7 @@
     const rows=deep(schedule);
     rows.forEach(row=>row.forEach((cell,i)=>{
       row[i]=cell
-        .replace(/數學\(CT5\)|數學\(CT7\)/g,'數學(PT-MA)')
+        .replace(/數學\(CT5\)|數學\(CT7\)|數學\(PT-MA\)/g,'數學(CT-MA)')
         .replace(/藝術\(ET5\)/g,'藝術(PT-AR)')
         .replace(/SAEAM\(ET5\)/g,'STEAM(CT-IT)')
         .replace(/體育\(ET7\)/g,'體育(PT-PE)')
