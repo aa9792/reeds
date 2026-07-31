@@ -1,5 +1,6 @@
 const SPREADSHEET_ID = '10rzQQQj-BYZ1hJAilPTVlDyfUYfuJKj1RwUtIv9a2pA';
 const SHEET_NAME = '工作檢核表';
+const RULES_SHEET_NAME = '學校規章辦法';
 const STATUS_DONE = '已完成';
 const STATUS_TODO = '待開始';
 
@@ -21,13 +22,28 @@ const HEADER_NAMES = {
   updatedAt: '最後更新'
 };
 
-function doGet() {
+const RULES_HEADERS = ['編號', '類別', '規章名稱', '簡述說明', '權責單位', '上傳狀態', '上傳者', '上傳日期', '最後更新'];
+
+function doGet(e) {
+  const resource = e && e.parameter && e.parameter.resource;
+  if (resource === 'schoolRules') {
+    return jsonResponse({ ok: true, rows: readSchoolRules() });
+  }
   return jsonResponse({ ok: true, rows: readRows() });
 }
 
 function doPost(e) {
   try {
     const body = JSON.parse((e.postData && e.postData.contents) || '{}');
+    if (body.resource === 'schoolRules') {
+      if (body.action === 'bootstrap') {
+        return jsonResponse({ ok: true, rows: bootstrapSchoolRules(body.rows || []) });
+      }
+      if (body.action === 'update') {
+        return jsonResponse({ ok: true, row: updateSchoolRule(body) });
+      }
+      return jsonResponse({ ok: false, error: 'Unsupported schoolRules action' });
+    }
     if (body.action === 'reset') {
       return jsonResponse({ ok: true, rows: resetRows() });
     }
@@ -38,6 +54,81 @@ function doPost(e) {
   } catch (err) {
     return jsonResponse({ ok: false, error: err.message || String(err) });
   }
+}
+
+function getRulesSheet(createIfMissing) {
+  const spreadsheet = SpreadsheetApp.openById(SPREADSHEET_ID);
+  let sheet = spreadsheet.getSheetByName(RULES_SHEET_NAME);
+  if (!sheet && createIfMissing) {
+    sheet = spreadsheet.insertSheet(RULES_SHEET_NAME);
+    sheet.getRange(1, 1, 1, RULES_HEADERS.length).setValues([RULES_HEADERS]);
+    sheet.setFrozenRows(1);
+    sheet.setHiddenGridlines(true);
+    sheet.getRange(1, 1, 1, RULES_HEADERS.length)
+      .setBackground('#1f3a5c').setFontColor('#ffffff').setFontWeight('bold');
+    sheet.setColumnWidth(1, 90);
+    sheet.setColumnWidth(2, 90);
+    sheet.setColumnWidth(3, 260);
+    sheet.setColumnWidth(4, 360);
+    sheet.setColumnWidth(5, 100);
+    sheet.setColumnWidth(6, 100);
+    sheet.setColumnWidth(7, 120);
+    sheet.setColumnWidth(8, 110);
+    sheet.setColumnWidth(9, 150);
+  }
+  return sheet;
+}
+
+function bootstrapSchoolRules(rows) {
+  const sheet = getRulesSheet(true);
+  const existing = readSchoolRules();
+  const byId = {};
+  existing.forEach(row => byId[row.id] = row);
+  const output = rows.map(rule => {
+    const old = byId[rule.id] || {};
+    return [
+      rule.id || '', rule.category || '', rule.name || '', rule.description || '', rule.owner || '',
+      old.uploaded ? '已上傳' : '未上傳', old.uploader || '', old.uploadedAt || '', old.updatedAt || ''
+    ];
+  });
+  if (sheet.getLastRow() > 1) {
+    sheet.getRange(2, 1, sheet.getLastRow() - 1, RULES_HEADERS.length).clearContent();
+  }
+  if (output.length) {
+    sheet.getRange(2, 1, output.length, RULES_HEADERS.length).setValues(output);
+    sheet.getRange(2, 1, output.length, RULES_HEADERS.length).setVerticalAlignment('middle');
+    sheet.getRange(2, 3, output.length, 2).setWrap(true);
+  }
+  return readSchoolRules();
+}
+
+function readSchoolRules() {
+  const sheet = getRulesSheet(false);
+  if (!sheet || sheet.getLastRow() < 2) return [];
+  return sheet.getRange(2, 1, sheet.getLastRow() - 1, RULES_HEADERS.length).getDisplayValues()
+    .filter(row => row[0])
+    .map(row => ({
+      id: row[0], category: row[1], name: row[2], description: row[3], owner: row[4],
+      uploaded: row[5] === '已上傳', uploader: row[6], uploadedAt: row[7], updatedAt: row[8]
+    }));
+}
+
+function updateSchoolRule(body) {
+  const sheet = getRulesSheet(true);
+  const lastRow = sheet.getLastRow();
+  if (lastRow < 2) throw new Error('學校規章辦法工作表尚未初始化');
+  const ids = sheet.getRange(2, 1, lastRow - 1, 1).getDisplayValues().flat();
+  const offset = ids.findIndex(id => id === body.id);
+  if (offset < 0) throw new Error('Cannot find school rule ID: ' + body.id);
+  const rowNumber = offset + 2;
+  const uploaded = body.uploaded === true || body.uploaded === 'true';
+  sheet.getRange(rowNumber, 6, 1, 4).setValues([[
+    uploaded ? '已上傳' : '未上傳',
+    body.uploader || '',
+    uploaded ? (body.uploadedAt || todayISO()) : '',
+    new Date()
+  ]]);
+  return readSchoolRules().find(row => row.id === body.id);
 }
 
 function getSheet() {
