@@ -179,6 +179,62 @@
   table.axistable td.axisname{font-weight:bold; white-space:nowrap; color:var(--accent);}
   table.fw-hours td.subjname{text-align:left; font-weight:bold; white-space:nowrap;}
   table.fw-hours tr.totalrow td{background:#eef2ef; font-weight:bold;}
+
+  /* ===== 學校規章辦法檢核 ===== */
+  .rules-page{max-width:1440px; margin:0 auto;}
+  .rules-upload{
+    display:flex; align-items:center; gap:18px; padding:20px 22px; margin-bottom:16px;
+    border:1px solid #b8c9dc; border-radius:14px; background:linear-gradient(135deg,#f3f7fb 0%,#fff 72%);
+    box-shadow:0 4px 16px rgba(31,58,92,.07);
+  }
+  .rules-upload-icon{
+    display:flex; align-items:center; justify-content:center; flex:0 0 50px; height:50px;
+    border-radius:13px; background:var(--accent); color:#fff; font-size:24px; font-weight:bold;
+  }
+  .rules-upload-copy{flex:1; min-width:180px;}
+  .rules-upload-copy h3{margin:0 0 5px; color:var(--accent); font-size:16px;}
+  .rules-upload-copy p{margin:0; color:#617083; line-height:1.55; font-size:12.5px;}
+  .rules-drive-btn{
+    display:inline-flex; align-items:center; gap:7px; flex:0 0 auto; padding:10px 16px;
+    border-radius:9px; background:var(--accent); color:#fff; text-decoration:none; font-weight:bold;
+  }
+  .rules-drive-btn:hover{opacity:.9;}
+  .rules-summary{display:grid; grid-template-columns:1.4fr repeat(3,minmax(130px,.6fr)); gap:10px; margin-bottom:16px;}
+  .rules-progress-card,.rules-stat{background:#fff; border:1px solid var(--border); border-radius:11px; padding:13px 15px;}
+  .rules-progress-head{display:flex; justify-content:space-between; gap:12px; margin-bottom:9px; color:#536174;}
+  .rules-progress-head strong{color:var(--accent); font-size:15px;}
+  .rules-progress-track{height:8px; border-radius:999px; background:#e8edf2; overflow:hidden;}
+  .rules-progress-fill{height:100%; background:var(--accent); border-radius:inherit; transition:width .2s ease;}
+  .rules-stat span{display:block; color:#7b8794; font-size:11.5px; margin-bottom:3px;}
+  .rules-stat strong{font-size:20px; color:var(--accent);}
+  .rules-controls{display:flex; flex-wrap:wrap; align-items:center; gap:9px; margin-bottom:12px;}
+  .rules-search{min-width:240px; flex:1; border:1px solid var(--border); border-radius:8px; padding:8px 11px; font:inherit;}
+  .rules-filter{border:1px solid var(--border); background:#fff; border-radius:8px; padding:8px 10px; font:inherit; color:#36485c;}
+  .rules-section{margin:0 0 18px;}
+  .rules-section-head{display:flex; justify-content:space-between; align-items:end; gap:12px; margin:0 0 8px;}
+  .rules-section-head h3{margin:0; font-size:15px; color:var(--accent); border-left:4px solid var(--accent); padding-left:8px;}
+  .rules-section-head span{font-size:12px; color:#7b8794;}
+  .rules-table-wrap{overflow-x:auto; border-radius:10px; border:1px solid var(--border); background:#fff;}
+  table.rules-table{border:none; min-width:880px;}
+  .rules-table th{position:static; background:#eef2f6; border-top:0;}
+  .rules-table th:first-child,.rules-table td:first-child{border-left:0;}
+  .rules-table th:last-child,.rules-table td:last-child{border-right:0;}
+  .rules-table tbody tr:last-child td{border-bottom:0;}
+  .rules-table tr.uploaded td{background:#f3f8f5;}
+  .rules-table td.rules-number{font-weight:bold; color:var(--accent); white-space:nowrap;}
+  .rules-table td.rules-name{font-weight:bold; color:#303944;}
+  .rules-table td.rules-desc{color:#647181; line-height:1.5;}
+  .rules-check-label{display:inline-flex; align-items:center; gap:7px; cursor:pointer; white-space:nowrap; font-weight:bold; color:#536174;}
+  .rules-check{width:18px; height:18px; accent-color:var(--accent); cursor:pointer;}
+  .rules-uploader{width:100%; min-width:120px; border:1px solid #cfd7df; border-radius:7px; padding:7px 9px; font:inherit; background:#fff;}
+  .rules-uploader:focus,.rules-search:focus,.rules-filter:focus{outline:2px solid #b7c9dc; border-color:var(--accent);}
+  .rules-empty{padding:30px; text-align:center; color:#7b8794; background:#fff; border:1px solid var(--border); border-radius:10px;}
+  @media(max-width:760px){
+    .rules-upload{align-items:flex-start; flex-wrap:wrap;}
+    .rules-drive-btn{width:100%; justify-content:center;}
+    .rules-summary{grid-template-columns:1fr 1fr;}
+    .rules-progress-card{grid-column:1/-1;}
+  }
   @media print{
     #topbar, #toolbar, .hint, #legend{display:none !important;}
     #content{padding:0;}
@@ -708,7 +764,7 @@ body.portal-mode #groupSeg button.active{
       <div class="seg" id="groupSeg">
         <button data-group="home">入口首頁</button>
         <button data-group="curriculum">課程規劃</button>
-        <button data-group="operations">校務營運</button>
+        <button data-group="operations">學校管理</button>
       </div>
       <select class="view-select" id="viewSelect"></select>
       <select class="view-select" id="gradeSelect"></select>
@@ -794,6 +850,69 @@ const PREP_CHECKLIST_DEFAULT = [
   {id:"P8-04",phase:"第八期",period:"116年8月",category:"正式開學",item:"正式啟動機構營運",criteria:"以迎新活動迎接第一屆睿思學生，正式啟動機構營運。",evidence:"開學活動紀錄、營運啟動紀錄",priority:"高",owner:"校長室/全體教職員",due:"2027-08-31"}
 ];
 
+const SCHOOL_RULES_DRIVE_URL = "https://drive.google.com/drive/folders/1s-5UOZNpqlNp_uoDmdhzmoxCDBw9m80N?usp=sharing";
+const SCHOOL_RULES_DEFAULT = [
+  {id:"一-1",category:"教導類",name:"組織規程",description:"組織編制及負責業務訂定",owner:"教導處"},
+  {id:"一-1-1",category:"教導類",name:"學校組織圖",description:"組織編制說明",owner:"教導處"},
+  {id:"一-2",category:"教導類",name:"教師（含兼行政人員）差勤暨授課管理要點",description:"本校編制內並按月支給待遇之教師（含兼行政人員）及職員適用。",owner:"教導處"},
+  {id:"一-3",category:"教導類",name:"運動場館合作契約書－新莊運動中心",description:"體育課程與外場館簽訂有關費用、教學、教師、課程、評量等相關規範。",owner:"教導處"},
+  {id:"一-4",category:"教導類",name:"學生請假",description:"學生請假管理辦法",owner:"教導處"},
+  {id:"一-5",category:"教導類",name:"特殊教育推行委員會設置要點",description:"提供特殊教育學生有關評量、教學及行政支援服務。",owner:"教導處"},
+  {id:"一-6",category:"教導類",name:"學生彈性調整修業年級實施要點",description:"協助學習優異之學生加速、加深或加廣學習。",owner:"教導處"},
+  {id:"一-7",category:"教導類",name:"校園災害防救組織分工表",description:"校園災害防救組織人員編組與任務分工",owner:"教導處"},
+  {id:"一-7-1",category:"教導類",name:"防災演練腳本（一般）",description:"防災演練進行用",owner:"教導處"},
+  {id:"一-7-2",category:"教導類",name:"防災演練腳本（矩陣式）",description:"防災演練進行用",owner:"教導處"},
+  {id:"一-8",category:"教導類",name:"閱讀日活動要點",description:"培養學生閱讀好習慣",owner:"教導處"},
+  {id:"一-9",category:"教導類",name:"睿思導師手冊",description:"導師班級經營注意事項與實施策略",owner:"教導處"},
+  {id:"一-10",category:"教導類",name:"課後社團實施要點",description:"社團招生、收費等相關規定",owner:"教導處"},
+  {id:"一-11",category:"教導類",name:"公開授課實施要點",description:"入班觀課、議課規則",owner:"教導處"},
+  {id:"一-12",category:"教導類",name:"家長日實施要點",description:"家校合作，親師溝通",owner:"教導處"},
+  {id:"一-13",category:"教導類",name:"學生作品、活動照片（個人及團體）授權同意書",description:"肖像權使用規範",owner:"教導處"},
+  {id:"一-14",category:"教導類",name:"學生離校同意書",description:"學生早退使用",owner:"教導處"},
+  {id:"一-15",category:"教導類",name:"收退費辦法",description:"各項費用收費及退費原則",owner:"教導處"},
+  {id:"一-16",category:"教導類",name:"個人資料蒐集、處理及使用告知同意書",description:"學生個資運用",owner:"教導處"},
+  {id:"一-17",category:"教導類",name:"學生個資同意書（英文版）",description:"學生個資運用",owner:"教導處"},
+  {id:"一-18",category:"教導類",name:"教職員工請（休）假管理要點",description:"教職員工因婚、喪、疾病或其他正當理由請（休）假之權利與義務及薪資給付。",owner:"教導處"},
+  {id:"一-19",category:"教導類",name:"學生成績評量準則",description:"學生學習評量目的、範圍、內涵、原則與方式及結果的保存與管理。",owner:"教導處"},
+  {id:"一-20",category:"教導類",name:"自主學習申請表",description:"學生因應特殊學習需求，得申請自主學習計畫。",owner:"教導處"},
+  {id:"一-21",category:"教導類",name:"學生輔導與管教辦法",description:"維護學生學習權、受教育權、身體自主權及人格發展權，並維護校園安全及教學秩序。",owner:"教導處"},
+  {id:"一-22",category:"教導類",name:"戶外教育移地學習實施計畫",description:"深化體驗學習理念，逐步精進移地學習體驗成效。",owner:"教導處"},
+  {id:"一-23",category:"教導類",name:"學生學籍管理要點",description:"新生、轉出入生、畢業生學籍管理事宜",owner:"教導處"},
+  {id:"一-24",category:"教導類",name:"教學設備及教具使用管理辦法",description:"管理教學設備、教具及實驗藥品等",owner:"教導處"},
+  {id:"一-25",category:"教導類",name:"因應嚴重特殊傳染性肺炎防疫應變計畫",description:"成立應變小組、研訂防疫策略、落實防疫措施等",owner:"教導處"},
+  {id:"一-26",category:"教導類",name:"睿思招生辦法",description:"招生對象、登記報名方式與入學步驟",owner:"教導處"},
+  {id:"一-27",category:"教導類",name:"教職員學年度績效評核辦法",description:"為激勵教職員工作績效，訂定績效評核項目、標準及方式等。",owner:"教導處"},
+  {id:"一-28",category:"教導類",name:"睿思教師帶領學生至校外進行課程流程",description:"落實點名機制，確實掌握參與課程的學生人數。",owner:"教導處"},
+  {id:"一-29",category:"教導類",name:"睿思班級至校外教學申請表",description:"檢視校外教學與領域課程的連結性，並提供必要的行政支援。",owner:"教導處"},
+  {id:"一-30",category:"教導類",name:"校園危機事件處理辦法",description:"建立危機意識，審慎妥善管理危機，以確保師生安全。",owner:"教導處"},
+  {id:"一-31",category:"教導類",name:"緊急傷病學生處理辦法",description:"提供事故傷害與疾病之緊急救護與疾病照護措施，以降低傷病危害程度。",owner:"教導處"},
+  {id:"一-32",category:"教導類",name:"教師招募使用招募簡章",description:"儲備國中小教師",owner:"教導處"},
+  {id:"二-1",category:"總務類",name:"零用金作業規範",description:"零用金使用",owner:"總務處"},
+  {id:"二-2",category:"總務類",name:"採購作業管理辦法",description:"請購、採購及付款原則",owner:"總務處"},
+  {id:"二-2-1",category:"總務類",name:"表單－請款單",description:"請購請款使用",owner:"總務處"},
+  {id:"二-2-2",category:"總務類",name:"表單－支出證明單",description:"支付款項因特殊情形不能取得收據、統一發票時使用。",owner:"總務處"},
+  {id:"二-3",category:"總務類",name:"財產管理執行細則",description:"財產管理準則、物品管理等",owner:"總務處"},
+  {id:"二-3-1",category:"總務類",name:"何嘉仁文教基金會財產管理辦法／現代企業經營學術基金會財產管理辦法",description:"擬訂本校財產管理執行細則依據",owner:"總務處"},
+  {id:"二-4",category:"總務類",name:"核決權限條例",description:"各項事務核決流程與權限劃分",owner:"總務處"},
+  {id:"二-5",category:"總務類",name:"優惠入學辦法",description:"學生入學優惠原則訂定",owner:"總務處"},
+  {id:"二-6",category:"總務類",name:"員工差旅費報支標準",description:"交通費、膳雜費、住宿費報支依據",owner:"總務處"},
+  {id:"二-6-1",category:"總務類",name:"差旅費報支明細表",description:"申請交通費、膳雜費、住宿費等",owner:"總務處"},
+  {id:"二-7",category:"總務類",name:"校園場地借用辦法",description:"場地借用原則、時間、辦法及收費標準等",owner:"總務處"},
+  {id:"二-7-1",category:"總務類",name:"校園場地借用申請書",description:"場地借用申請、保證金及切結書",owner:"總務處"},
+  {id:"二-8",category:"總務類",name:"離職證明書",description:"辦理離職程序用，便於後續失業給付申請。",owner:"總務處"},
+  {id:"二-9",category:"總務類",name:"服務需求委辦單",description:"委辦學校業務需求予全華或其他單位協助。",owner:"總務處"},
+  {id:"二-10",category:"總務類",name:"移交清冊－封面",description:"辦理異動、離職或留職停薪時職務交接用。",owner:"總務處"},
+  {id:"二-10-1",category:"總務類",name:"移交清冊－內頁",description:"辦理異動、離職或留職停薪時職務交接用。",owner:"總務處"},
+  {id:"二-11",category:"總務類",name:"學費及雜費分期緩繳付款辦法",description:"規範因故有分期繳費需求家長之繳費作法。",owner:"總務處"},
+  {id:"二-12",category:"總務類",name:"教職員工關懷與員工福利補助辦法",description:"增進教職員工福利，推動人情關懷。",owner:"總務處"},
+  {id:"二-12-1",category:"總務類",name:"教職員健康檢查補助申請表",description:"提供健康檢查補助申請使用",owner:"總務處"},
+  {id:"二-12-2",category:"總務類",name:"教職員工子女教育補助費申請表",description:"提供子女教育補助費申請使用",owner:"總務處"},
+  {id:"二-13",category:"總務類",name:"工程規劃設計及監造服務委託契約（公版）",description:"提供工程規劃設計及監造委託技術服務用",owner:"總務處"},
+  {id:"二-14",category:"總務類",name:"工程規劃設計委託契約（公版）",description:"提供工程規劃設計委託技術服務用",owner:"總務處"},
+  {id:"二-15",category:"總務類",name:"睿思室裝工程承攬契約書（公版）",description:"提供工程相關承攬服務用",owner:"總務處"},
+  {id:"二-16",category:"總務類",name:"跑照委任合約（公版）",description:"提供跑照委託技術服務用",owner:"總務處"}
+];
+
 const STORE_KEY = "reeds_schedule_data_v1";
 const PREP_SHEET_API_URL = "https://script.google.com/macros/s/AKfycbxFtZ-aCBAQqFVEG7I95fodAivh_LrfJos7a1k1kLUvUJzXiWcNhbNyIa0xJug2BAOz/exec";
 const PREP_SHEET_API_ENABLED = PREP_SHEET_API_URL.trim().startsWith("https://");
@@ -807,7 +926,7 @@ let prepSheetSync = {
   lastSync: ""
 };
 let data = loadData();
-let state = { group: "home", grade: "1", sem: "1", view: "portal", classId: "1A" };
+let state = { group: "home", grade: "1", sem: "1", view: "portal", classId: "1A", ruleCategory: "全部", ruleStatus: "全部", ruleQuery: "" };
 
 function loadData(){
   let d = null;
@@ -822,6 +941,7 @@ function loadData(){
   delete d.finance;
   delete d.teachingLoad;
   if(!d.classSchedules) d.classSchedules = JSON.parse(JSON.stringify(SCHOOL_DATA.classSchedules));
+  ensureSchoolRules(d);
   applyCurriculumAlignment(d);
   try{ localStorage.setItem(STORE_KEY, JSON.stringify(d)); }catch(e){}
   ensurePrepChecklist(d);
@@ -829,6 +949,20 @@ function loadData(){
 }
 function saveData(){
   try{ localStorage.setItem(STORE_KEY, JSON.stringify(data)); }catch(e){}
+}
+
+function ensureSchoolRules(d){
+  const existing = Array.isArray(d.schoolRules) ? d.schoolRules : [];
+  const byId = {};
+  existing.forEach(item=>{ if(item && item.id) byId[item.id] = item; });
+  d.schoolRules = SCHOOL_RULES_DEFAULT.map(item=>{
+    const old = byId[item.id] || {};
+    return Object.assign({}, item, {
+      uploaded: !!old.uploaded,
+      uploader: old.uploader || "",
+      uploadedAt: old.uploadedAt || ""
+    });
+  });
 }
 
 function ensurePrepChecklist(d){
@@ -972,7 +1106,8 @@ const VIEW_LABELS = {
     { value: 'org', label: '組織職掌' },
     { value: 'firstYearStaffing', label: '第一年教師配課' },
     { value: 'classSchedule', label: '班級課表' },
-    { value: 'prepChecklist', label: '籌備檢核' }
+    { value: 'prepChecklist', label: '籌備檢核' },
+    { value: 'schoolRules', label: '學校規章辦法' }
   ]
 };
 
@@ -1053,6 +1188,7 @@ function renderContent(){
     if(state.view === 'org') renderOrg(el);
     else if(state.view === 'firstYearStaffing') renderFirstYearStaffing(el);
     else if(state.view === 'prepChecklist') renderPrepChecklist(el);
+    else if(state.view === 'schoolRules') renderSchoolRules(el);
     else renderClassSchedule(el);
     return;
   }
@@ -2375,6 +2511,132 @@ function renderPrepChecklist(el){
     section.appendChild(table);
     el.appendChild(section);
   });
+}
+
+function renderSchoolRules(el){
+  ensureSchoolRules(data);
+  const rules = data.schoolRules;
+  const uploaded = rules.filter(r=>r.uploaded).length;
+  const teaching = rules.filter(r=>r.category === '教導類');
+  const general = rules.filter(r=>r.category === '總務類');
+  const percent = rules.length ? Math.round(uploaded / rules.length * 100) : 0;
+
+  const page = document.createElement('div');
+  page.className = 'rules-page';
+  page.innerHTML = `
+    <h2>學校規章辦法</h2>
+    <div class="subtitle">依「睿思學校規章辦法一覽表」建立，共 ${rules.length} 項；勾選與上傳者資料會儲存在目前瀏覽器。</div>
+    <section class="rules-upload" aria-label="規章文件雲端上傳">
+      <div class="rules-upload-icon" aria-hidden="true">↑</div>
+      <div class="rules-upload-copy">
+        <h3>上傳規章文件至共用雲端資料夾</h3>
+        <p>先開啟 Google Drive 上傳完成，再回到下方清單勾選「已上傳」並填寫上傳者姓名。</p>
+      </div>
+      <a class="rules-drive-btn" href="${SCHOOL_RULES_DRIVE_URL}" target="_blank" rel="noopener noreferrer" aria-label="開啟 Google Drive 規章文件資料夾（新分頁）">開啟雲端資料夾上傳 ↗</a>
+    </section>
+    <div class="rules-summary" aria-label="上傳進度摘要">
+      <div class="rules-progress-card">
+        <div class="rules-progress-head"><span>整體上傳進度</span><strong>${percent}%</strong></div>
+        <div class="rules-progress-track" role="progressbar" aria-valuenow="${percent}" aria-valuemin="0" aria-valuemax="100"><div class="rules-progress-fill" style="width:${percent}%"></div></div>
+      </div>
+      <div class="rules-stat"><span>已上傳</span><strong>${uploaded} / ${rules.length}</strong></div>
+      <div class="rules-stat"><span>教導類</span><strong>${teaching.filter(r=>r.uploaded).length} / ${teaching.length}</strong></div>
+      <div class="rules-stat"><span>總務類</span><strong>${general.filter(r=>r.uploaded).length} / ${general.length}</strong></div>
+    </div>
+    <div class="rules-controls">
+      <input class="rules-search" type="search" placeholder="搜尋編號、規章名稱或說明…" value="" aria-label="搜尋規章">
+      <select class="rules-filter rules-category" aria-label="依類別篩選"><option>全部</option><option>教導類</option><option>總務類</option></select>
+      <select class="rules-filter rules-status" aria-label="依上傳狀態篩選"><option>全部</option><option>已上傳</option><option>未上傳</option></select>
+    </div>
+    <div class="rules-list"></div>`;
+  el.appendChild(page);
+
+  const search = page.querySelector('.rules-search');
+  const categorySelect = page.querySelector('.rules-category');
+  const statusSelect = page.querySelector('.rules-status');
+  search.value = state.ruleQuery;
+  categorySelect.value = state.ruleCategory;
+  statusSelect.value = state.ruleStatus;
+
+  const drawList = ()=>{
+    const q = state.ruleQuery.trim().toLowerCase();
+    const visible = rules.filter(r=>{
+      const matchesCategory = state.ruleCategory === '全部' || r.category === state.ruleCategory;
+      const matchesStatus = state.ruleStatus === '全部' || (state.ruleStatus === '已上傳' ? r.uploaded : !r.uploaded);
+      const text = [r.id,r.name,r.description,r.owner,r.uploader].join(' ').toLowerCase();
+      return matchesCategory && matchesStatus && (!q || text.includes(q));
+    });
+    const list = page.querySelector('.rules-list');
+    list.innerHTML = '';
+    if(!visible.length){
+      list.innerHTML = '<div class="rules-empty">沒有符合目前篩選條件的規章項目。</div>';
+      return;
+    }
+    ['教導類','總務類'].forEach(category=>{
+      const rows = visible.filter(r=>r.category === category);
+      if(!rows.length) return;
+      const section = document.createElement('section');
+      section.className = 'rules-section';
+      const completed = rows.filter(r=>r.uploaded).length;
+      section.innerHTML = `<div class="rules-section-head"><h3>${category}</h3><span>${completed} / ${rows.length} 項已上傳</span></div><div class="rules-table-wrap"><table class="rules-table"><thead><tr><th style="width:92px">編號</th><th style="width:25%">規章名稱</th><th>簡述說明</th><th style="width:95px">權責單位</th><th style="width:110px">上傳檢核</th><th style="width:170px">上傳者</th></tr></thead><tbody></tbody></table></div>`;
+      const tbody = section.querySelector('tbody');
+      rows.forEach(rule=>{
+        const tr = document.createElement('tr');
+        if(rule.uploaded) tr.className = 'uploaded';
+        tr.innerHTML = `<td class="rules-number"></td><td class="rules-name"></td><td class="rules-desc"></td><td></td><td></td><td></td>`;
+        tr.children[0].textContent = rule.id;
+        tr.children[1].textContent = rule.name;
+        tr.children[2].textContent = rule.description;
+        tr.children[3].textContent = rule.owner;
+
+        const label = document.createElement('label');
+        label.className = 'rules-check-label';
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.className = 'rules-check';
+        checkbox.checked = rule.uploaded;
+        const checkText = document.createElement('span');
+        checkText.textContent = rule.uploaded ? '已上傳' : '未上傳';
+        checkbox.onchange = ()=>{
+          rule.uploaded = checkbox.checked;
+          rule.uploadedAt = checkbox.checked ? todayISO() : '';
+          saveData();
+          renderSchoolRulesRefresh(el);
+        };
+        label.appendChild(checkbox);
+        label.appendChild(checkText);
+        tr.children[4].appendChild(label);
+
+        const uploader = document.createElement('input');
+        uploader.type = 'text';
+        uploader.className = 'rules-uploader';
+        uploader.placeholder = '輸入姓名';
+        uploader.value = rule.uploader || '';
+        uploader.setAttribute('aria-label', rule.name + '上傳者姓名');
+        uploader.onchange = ()=>{ rule.uploader = uploader.value.trim(); saveData(); };
+        tr.children[5].appendChild(uploader);
+        if(rule.uploadedAt){
+          const date = document.createElement('div');
+          date.className = 'prep-muted';
+          date.style.marginTop = '5px';
+          date.textContent = rule.uploadedAt;
+          tr.children[5].appendChild(date);
+        }
+        tbody.appendChild(tr);
+      });
+      list.appendChild(section);
+    });
+  };
+
+  search.oninput = ()=>{ state.ruleQuery = search.value; drawList(); };
+  categorySelect.onchange = ()=>{ state.ruleCategory = categorySelect.value; drawList(); };
+  statusSelect.onchange = ()=>{ state.ruleStatus = statusSelect.value; drawList(); };
+  drawList();
+}
+
+function renderSchoolRulesRefresh(el){
+  el.innerHTML = '';
+  renderSchoolRules(el);
 }
 
 function prepKpi(title, value, sub){
