@@ -199,6 +199,8 @@
     border-radius:9px; background:var(--accent); color:#fff; text-decoration:none; font-weight:bold;
   }
   .rules-drive-btn:hover{opacity:.9;}
+  .rules-drive-actions{display:flex; flex-wrap:wrap; justify-content:flex-end; gap:8px;}
+  .rules-drive-btn.secondary{background:#fff; color:var(--accent); border:1px solid #aebfd1;}
   .rules-summary{display:grid; grid-template-columns:1.4fr repeat(3,minmax(130px,.6fr)); gap:10px; margin-bottom:16px;}
   .rules-progress-card,.rules-stat{background:#fff; border:1px solid var(--border); border-radius:11px; padding:13px 15px;}
   .rules-progress-head{display:flex; justify-content:space-between; gap:12px; margin-bottom:9px; color:#536174;}
@@ -231,6 +233,7 @@
   .rules-empty{padding:30px; text-align:center; color:#7b8794; background:#fff; border:1px solid var(--border); border-radius:10px;}
   @media(max-width:760px){
     .rules-upload{align-items:flex-start; flex-wrap:wrap;}
+    .rules-drive-actions{width:100%;}
     .rules-drive-btn{width:100%; justify-content:center;}
     .rules-summary{grid-template-columns:1fr 1fr;}
     .rules-progress-card{grid-column:1/-1;}
@@ -851,6 +854,7 @@ const PREP_CHECKLIST_DEFAULT = [
 ];
 
 const SCHOOL_RULES_DRIVE_URL = "https://drive.google.com/drive/folders/1s-5UOZNpqlNp_uoDmdhzmoxCDBw9m80N?usp=sharing";
+const SCHOOL_RULES_REFERENCE_URL = "https://drive.google.com/drive/folders/1BKQWwI3u8_eynJNGj7WuZOKW-JAleNV9?usp=drive_link";
 const SCHOOL_RULES_DEFAULT = [
   {id:"一-1",category:"教導類",name:"組織規程",description:"組織編制及負責業務訂定",owner:"教導處"},
   {id:"一-1-1",category:"教導類",name:"學校組織圖",description:"組織編制說明",owner:"教導處"},
@@ -920,6 +924,14 @@ const PREP_SHEET_STATUS_DONE = "已完成";
 const PREP_SHEET_STATUS_TODO = "待開始";
 let prepSheetSync = {
   enabled: PREP_SHEET_API_ENABLED,
+  loading: false,
+  saving: false,
+  error: "",
+  lastSync: ""
+};
+let schoolRulesSheetSync = {
+  enabled: PREP_SHEET_API_ENABLED,
+  ready: false,
   loading: false,
   saving: false,
   error: "",
@@ -1274,6 +1286,86 @@ function renderPortal(el){
       render();
     });
   });
+}
+
+function mergeSchoolRuleRows(rows){
+  if(!Array.isArray(rows)) return;
+  ensureSchoolRules(data);
+  const byId = {};
+  rows.forEach(item=>{ if(item && item.id) byId[item.id] = item; });
+  data.schoolRules = data.schoolRules.map(rule=>{
+    const remote = byId[rule.id];
+    if(!remote) return rule;
+    return Object.assign({}, rule, {
+      uploaded: !!remote.uploaded,
+      uploader: remote.uploader || "",
+      uploadedAt: remote.uploadedAt || ""
+    });
+  });
+}
+
+function schoolRulesSheetStatusText(){
+  if(!schoolRulesSheetSync.enabled) return '尚未設定 Google Sheet API，資料暫存於本機瀏覽器';
+  if(!schoolRulesSheetSync.ready && !schoolRulesSheetSync.loading) return 'Google Sheet 規章同步功能等待 API 更新，目前資料暫存於本機瀏覽器';
+  if(schoolRulesSheetSync.loading) return '正在讀取 Google Sheet...';
+  if(schoolRulesSheetSync.saving) return '正在寫入 Google Sheet...';
+  if(schoolRulesSheetSync.error) return 'Google Sheet 同步失敗：' + schoolRulesSheetSync.error;
+  if(schoolRulesSheetSync.lastSync) return '已連接 Google Sheet，最後同步：' + schoolRulesSheetSync.lastSync;
+  return '已設定 Google Sheet API，可同步規章上傳狀態與上傳者';
+}
+
+function schoolRulesSheetStatusClass(){
+  if(!schoolRulesSheetSync.enabled) return 'prep-sync-status warn';
+  if(schoolRulesSheetSync.error) return 'prep-sync-status error';
+  if(schoolRulesSheetSync.lastSync) return 'prep-sync-status ok';
+  return 'prep-sync-status';
+}
+
+async function loadSchoolRulesFromSheet(options){
+  if(!schoolRulesSheetSync.enabled) return;
+  const silent = options && options.silent;
+  schoolRulesSheetSync.loading = true;
+  schoolRulesSheetSync.error = '';
+  if(!silent && state.view === 'schoolRules') renderContent();
+  try{
+    const res = await fetch(PREP_SHEET_API_URL + '?resource=schoolRules');
+    const json = await res.json();
+    const knownIds = new Set(SCHOOL_RULES_DEFAULT.map(rule=>rule.id));
+    schoolRulesSheetSync.ready = !!(json && json.ok && Array.isArray(json.rows) && json.rows.some(row=>knownIds.has(row.id)));
+    if(!schoolRulesSheetSync.ready) return;
+    mergeSchoolRuleRows(json.rows);
+    schoolRulesSheetSync.lastSync = new Date().toLocaleString('zh-TW');
+    saveData();
+  }catch(err){
+    schoolRulesSheetSync.error = err.message || String(err);
+  }finally{
+    schoolRulesSheetSync.loading = false;
+    if(state.view === 'schoolRules') renderContent();
+  }
+}
+
+async function syncSchoolRuleRow(rule){
+  if(!schoolRulesSheetSync.enabled || !schoolRulesSheetSync.ready) return;
+  schoolRulesSheetSync.saving = true;
+  schoolRulesSheetSync.error = '';
+  try{
+    const json = await fetchPrepSheet({
+      resource: 'schoolRules',
+      action: 'update',
+      id: rule.id,
+      uploaded: !!rule.uploaded,
+      uploader: rule.uploader || '',
+      uploadedAt: rule.uploadedAt || ''
+    });
+    if(json.row) mergeSchoolRuleRows([json.row]);
+    schoolRulesSheetSync.lastSync = new Date().toLocaleString('zh-TW');
+    saveData();
+  }catch(err){
+    schoolRulesSheetSync.error = err.message || String(err);
+  }finally{
+    schoolRulesSheetSync.saving = false;
+    if(state.view === 'schoolRules') renderContent();
+  }
 }
 
 function escapeHtml(value){
@@ -2525,15 +2617,20 @@ function renderSchoolRules(el){
   page.className = 'rules-page';
   page.innerHTML = `
     <h2>學校規章辦法</h2>
-    <div class="subtitle">依「睿思學校規章辦法一覽表」建立，共 ${rules.length} 項；勾選與上傳者資料會儲存在目前瀏覽器。</div>
+    <div class="subtitle">依「睿思學校規章辦法一覽表」建立，共 ${rules.length} 項；勾選、上傳者與日期會同步到 Google Sheet。</div>
     <section class="rules-upload" aria-label="規章文件雲端上傳">
       <div class="rules-upload-icon" aria-hidden="true">↑</div>
       <div class="rules-upload-copy">
         <h3>上傳規章文件至共用雲端資料夾</h3>
         <p>先開啟 Google Drive 上傳完成，再回到下方清單勾選「已上傳」並填寫上傳者姓名。</p>
       </div>
-      <a class="rules-drive-btn" href="${SCHOOL_RULES_DRIVE_URL}" target="_blank" rel="noopener noreferrer" aria-label="開啟 Google Drive 規章文件資料夾（新分頁）">開啟雲端資料夾上傳 ↗</a>
+      <div class="rules-drive-actions">
+        <a class="rules-drive-btn secondary" href="${SCHOOL_RULES_REFERENCE_URL}" target="_blank" rel="noopener noreferrer" aria-label="開啟 Google Drive 規章參考資料（新分頁）">開啟參考資料 ↗</a>
+        <a class="rules-drive-btn" href="${SCHOOL_RULES_DRIVE_URL}" target="_blank" rel="noopener noreferrer" aria-label="開啟 Google Drive 規章文件資料夾（新分頁）">開啟雲端資料夾上傳 ↗</a>
+      </div>
     </section>
+    <div class="${schoolRulesSheetStatusClass()}">${schoolRulesSheetStatusText()}</div>
+    <div class="rules-controls"><button class="btn rules-sync-btn" type="button">${schoolRulesSheetSync.loading ? '同步中...' : '同步 Google Sheet'}</button></div>
     <div class="rules-summary" aria-label="上傳進度摘要">
       <div class="rules-progress-card">
         <div class="rules-progress-head"><span>整體上傳進度</span><strong>${percent}%</strong></div>
@@ -2552,11 +2649,14 @@ function renderSchoolRules(el){
   el.appendChild(page);
 
   const search = page.querySelector('.rules-search');
+  const syncBtn = page.querySelector('.rules-sync-btn');
   const categorySelect = page.querySelector('.rules-category');
   const statusSelect = page.querySelector('.rules-status');
   search.value = state.ruleQuery;
   categorySelect.value = state.ruleCategory;
   statusSelect.value = state.ruleStatus;
+  syncBtn.disabled = !schoolRulesSheetSync.enabled || !schoolRulesSheetSync.ready || schoolRulesSheetSync.loading || schoolRulesSheetSync.saving;
+  syncBtn.onclick = ()=>loadSchoolRulesFromSheet();
 
   const drawList = ()=>{
     const q = state.ruleQuery.trim().toLowerCase();
@@ -2602,6 +2702,7 @@ function renderSchoolRules(el){
           rule.uploadedAt = checkbox.checked ? todayISO() : '';
           saveData();
           renderSchoolRulesRefresh(el);
+          syncSchoolRuleRow(rule);
         };
         label.appendChild(checkbox);
         label.appendChild(checkText);
@@ -2613,7 +2714,11 @@ function renderSchoolRules(el){
         uploader.placeholder = '輸入姓名';
         uploader.value = rule.uploader || '';
         uploader.setAttribute('aria-label', rule.name + '上傳者姓名');
-        uploader.onchange = ()=>{ rule.uploader = uploader.value.trim(); saveData(); };
+        uploader.onchange = ()=>{
+          rule.uploader = uploader.value.trim();
+          saveData();
+          syncSchoolRuleRow(rule);
+        };
         tr.children[5].appendChild(uploader);
         if(rule.uploadedAt){
           const date = document.createElement('div');
@@ -2785,6 +2890,7 @@ document.getElementById('btnPrint').onclick = ()=> window.print();
 applyInitialHash();
 render();
 loadPrepChecklistFromSheet({silent:true});
+loadSchoolRulesFromSheet({silent:true});
 </script>
 </body>
 </html>
