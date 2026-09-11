@@ -967,6 +967,7 @@ function renderFixedTimetable(el,type,id){
     });
   });
   wrap.appendChild(table);el.appendChild(wrap);
+  if(!isTeacher) renderClassPeriodStatistics(el,rows);
   const legend=document.createElement('div');legend.className='timetable-legend';
   ['中文','英語','中英雙語','選修語別','— 無排課'].forEach(text=>{const span=document.createElement('span');span.textContent=text;legend.appendChild(span);});
   el.appendChild(legend);
@@ -974,4 +975,41 @@ function renderFixedTimetable(el,type,id){
   note.textContent='午餐與午休12:00–13:00；交通與集合不計教學節次。空白時段不代表教師一定可被排入新課。行政、備課、午休照護、交通及戶外安全協同人力不計入授課節數；教師可到校時段與場地仍須確認。本土語文／臺灣手語暫列中文導師代碼，須依選修語別及授課資格確認。';
   el.appendChild(note);
   const source=document.createElement('p');source.className='hint';source.textContent=`資料來源：${p.source}｜${isTeacher?id+'教師課表':id+'班課表'}`;el.appendChild(source);
+}
+
+function renderClassPeriodStatistics(el,rows){
+  const languages=['中文','英語','中英雙語','選修語別'];
+  const totals=[0,0,0,0];
+  const subjects=new Map();
+  rows.flat().forEach(cell=>{
+    if(!cell || cell==='—') return;
+    const course=cell.split('\n')[0];
+    const subject=course.split(' ')[0];
+    const language=languages.findIndex(name=>cell.includes(`【${name}】`));
+    if(language<0) throw new Error('未識別的授課語言：'+cell);
+    if(!subjects.has(subject)) subjects.set(subject,[0,0,0,0]);
+    subjects.get(subject)[language]++;
+    totals[language]++;
+  });
+  const addTable=(title,entries,includeHours)=>{
+    const heading=document.createElement('h3');heading.textContent=title;el.appendChild(heading);
+    const wrap=document.createElement('div');wrap.className='fixed-timetable-wrap';
+    const table=document.createElement('table');table.className='fixed-timetable class-period-statistics';
+    const header=table.createTHead().insertRow();
+    [includeHours?'科目':'統計',...languages,'每週節數',...(includeHours?['每週時數']:[])].forEach(text=>{
+      const th=document.createElement('th');th.scope='col';th.textContent=text;header.appendChild(th);
+    });
+    const body=table.createTBody();
+    entries.forEach(([name,counts])=>{
+      const tr=body.insertRow();const th=document.createElement('th');th.scope='row';th.textContent=name;tr.appendChild(th);
+      const total=counts.reduce((sum,n)=>sum+n,0);
+      [...counts,total,...(includeHours?[`${Math.floor(total*40/60)}小時${total*40%60?` ${total*40%60}分`:''}`]:[])].forEach(value=>{tr.insertCell().textContent=value;});
+    });
+    wrap.appendChild(table);el.appendChild(wrap);
+  };
+  addTable('授課語言節數統計',[['實際課表',totals]],false);
+  addTable('各科授課節數與時數',[...subjects,['合計',totals]],true);
+  const note=document.createElement('p');note.className='hint';
+  note.textContent='依目前班級課表逐節統計；每節40分鐘。科目依課表名稱歸類，彈性課程各主題合併計入「彈性」；時數不含休息、午餐及交通。';
+  el.appendChild(note);
 }
