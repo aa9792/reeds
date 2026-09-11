@@ -1,30 +1,637 @@
 /* REEDS first-year staffing and teaching assignment plan. */
 (function(){
   const plan = {
-    title:'第一年教師配課表',
-    subtitle:'兩班一年級、一班二年級、一班三年級｜四班中外師雙導師制',
-    classes:[
-      {id:'1A',name:'一年級 A 班',chinese:'CT-G1 教學組長',english:'ET-1 外師導師一'},
-      {id:'1B',name:'一年級 B 班',chinese:'CT-D1 主任一',english:'ET-2 外師導師二'},
-      {id:'2A',name:'二年級 A 班',chinese:'CT-G2 課程組長',english:'ET-3 外師導師三'},
-      {id:'3A',name:'三年級 A 班',chinese:'CT-D2 主任二',english:'ET-4 外師導師四'}
-    ],
-    teachers:[
-      {code:'CT-D1',name:'主任一',role:'主任／中師導師',employment:'全職中師',homeroom:'1B',periods:4,courses:[['SEL／品德','1A、1B、2A、3A','各1節，共4節']],duties:'行政領導、1B班級經營、親師溝通、SEL學生觀察'},
-      {code:'CT-D2',name:'主任二',role:'主任／中師導師',employment:'全職中師',homeroom:'3A',periods:4,courses:[['閱讀策略與閱讀討論','1A、1B、2A、3A','各1節，共4節']],duties:'行政領導、3A班級經營、閱讀推動與學生支持'},
-      {code:'CT-G1',name:'教學組長',role:'組長／中師導師',employment:'全職中師',homeroom:'1A',periods:9,courses:[['語文','1A','5節'],['語文','1B','4節']],duties:'1A班級經營、低年級語文課程統整、中外師共備'},
-      {code:'CT-G2',name:'課程組長',role:'組長／中師導師',employment:'全職中師',homeroom:'2A',periods:9,courses:[['語文','2A','5節'],['語文','3A','4節']],duties:'2A班級經營、二三年級課程統整、Signature Project協調'},
-      {code:'CT-IT',name:'資訊組長',role:'資訊組長／跨班教師',employment:'全職中師',homeroom:'跨班',periods:9,courses:[['資訊科技 IT','1A、1B、2A、3A','各1節，共4節'],['STEAM Education','1A、1B、2A、3A','各1節，共4節'],['數位Portfolio協同','四班輪替','1節']],duties:'校務資訊、教學科技、設備管理、數位作品集與STEAM專案'},
-      {code:'ET-1',name:'外師導師一',role:'外師導師',employment:'全職外師',homeroom:'1A',periods:16,courses:[['Language Arts','1A','8節'],['English Social Studies','1A','3節'],['English Science','1A','2節'],['主題探索／Project','1A','3節']],duties:'1A英文班級經營、ESL分流、Portfolio與親師溝通'},
-      {code:'ET-2',name:'外師導師二',role:'外師導師',employment:'全職外師',homeroom:'1B',periods:16,courses:[['Language Arts','1B','8節'],['English Social Studies','1B','3節'],['English Science','1B','2節'],['主題探索／Project','1B','3節']],duties:'1B英文班級經營、ESL分流、Portfolio與親師溝通'},
-      {code:'ET-3',name:'外師導師三',role:'外師導師',employment:'全職外師',homeroom:'2A',periods:16,courses:[['Language Arts','2A','8節'],['English Social Studies','2A','3節'],['English Science','2A','2節'],['主題探索／Project','2A','3節']],duties:'2A英文班級經營、ESL分流、Portfolio與親師溝通'},
-      {code:'ET-4',name:'外師導師四',role:'外師導師',employment:'全職外師',homeroom:'3A',periods:16,courses:[['Language Arts','3A','8節'],['English Social Studies','3A','3節'],['English Science','3A','2節'],['主題探索／Project','3A','3節']],duties:'3A英文班級經營、ESL分流、Portfolio與親師溝通'},
-      {code:'CT-MA',name:'數學專任教師',role:'數學專任教師',employment:'全職中師',homeroom:'跨班',periods:16,courses:[['數學','1A、1B、2A、3A','各4節，共16節']],duties:'數學課程、學習診斷、分層任務設計與個別學習支持'},
-      {code:'PT-HU',name:'人文社會兼任教師',role:'語文／社會專業教師',employment:'專業兼任',homeroom:'—',periods:6,courses:[['語文','1B、3A','各1節，共2節'],['中文社會','1A、1B、2A、3A','各1節，共4節']],duties:'補足語文節數、在地文化與中文社會探究'},
-      {code:'PT-AR',name:'藝術兼任教師',role:'藝術專業教師',employment:'專業兼任',homeroom:'—',periods:8,courses:[['藝術 Arts','1A、1B、2A、3A','各2節，共8節']],duties:'視覺藝術、表演、策展及成果展美學指導'},
-      {code:'PT-PE',name:'體育／戶外教育兼任教師',role:'體育與冒險教育教師',employment:'專業兼任',homeroom:'—',periods:12,courses:[['體育 PE','1A、1B、2A、3A','各2節，共8節'],['Adventure／主題探索','1A、1B、2A、3A','各1節，共4節']],duties:'體適能、戶外安全、冒險挑戰與團隊任務'}
-    ]
-  };
+  "title": "第一年教師配課表",
+  "subtitle": "固定節數版｜101、102、201、301四班中外師雙導師制",
+  "classes": [
+    {
+      "id": "101",
+      "name": "101班（1年級）",
+      "chinese": "教師 A",
+      "english": "教師 G"
+    },
+    {
+      "id": "102",
+      "name": "102班（1年級）",
+      "chinese": "教師 B",
+      "english": "教師 H"
+    },
+    {
+      "id": "201",
+      "name": "201班（2年級）",
+      "chinese": "教師 C",
+      "english": "教師 I"
+    },
+    {
+      "id": "301",
+      "name": "301班（3年級）",
+      "chinese": "教師 D",
+      "english": "教師 J"
+    }
+  ],
+  "teachers": [
+    {
+      "code": "A",
+      "name": "教師 A",
+      "role": "101中文導師",
+      "homeroom": "101",
+      "periods": 7,
+      "courses": [
+        [
+          "彈性 中文閱讀 【中文】",
+          "101",
+          "1節"
+        ],
+        [
+          "彈性 生命教育與照護 【中英雙語】",
+          "101",
+          "1節"
+        ],
+        [
+          "體育 戶外合作挑戰 【中英雙語】",
+          "101",
+          "1節"
+        ],
+        [
+          "彈性 數學應用 【中文】",
+          "101",
+          "1節"
+        ],
+        [
+          "生活 自然觀察與證據 【中文】",
+          "101",
+          "1節"
+        ],
+        [
+          "本土語文／臺灣手語 【選修語別】",
+          "101",
+          "1節"
+        ],
+        [
+          "生活 感官與自然 【中文】",
+          "101",
+          "1節"
+        ]
+      ],
+      "note": "依附件固定節數"
+    },
+    {
+      "code": "B",
+      "name": "教師 B",
+      "role": "102中文導師",
+      "homeroom": "102",
+      "periods": 5,
+      "courses": [
+        [
+          "本土語文／臺灣手語 【選修語別】",
+          "102",
+          "1節"
+        ],
+        [
+          "國語文 【中文】",
+          "102",
+          "3節"
+        ],
+        [
+          "彈性 數學應用 【中文】",
+          "102",
+          "1節"
+        ]
+      ],
+      "note": "依附件固定節數"
+    },
+    {
+      "code": "C",
+      "name": "教師 C",
+      "role": "201中文導師",
+      "homeroom": "201",
+      "periods": 7,
+      "courses": [
+        [
+          "國語文 【中文】",
+          "201",
+          "3節"
+        ],
+        [
+          "彈性 STEAM創作 【中英雙語】",
+          "201",
+          "1節"
+        ],
+        [
+          "本土語文／臺灣手語 【選修語別】",
+          "201",
+          "1節"
+        ],
+        [
+          "生活 自然觀察與證據 【中文】",
+          "201",
+          "1節"
+        ],
+        [
+          "彈性 數學應用 【中文】",
+          "201",
+          "1節"
+        ]
+      ],
+      "note": "依附件固定節數"
+    },
+    {
+      "code": "D",
+      "name": "教師 D",
+      "role": "301中文導師",
+      "homeroom": "301",
+      "periods": 4,
+      "courses": [
+        [
+          "自然科學 【中文】",
+          "301",
+          "1節"
+        ],
+        [
+          "本土語文／臺灣手語 【選修語別】",
+          "301",
+          "1節"
+        ],
+        [
+          "國語文 【中文】",
+          "301",
+          "2節"
+        ]
+      ],
+      "note": "依附件固定節數"
+    },
+    {
+      "code": "E",
+      "name": "教師 E",
+      "role": "跨班數學",
+      "homeroom": "跨班",
+      "periods": 16,
+      "courses": [
+        [
+          "數學 【中文】",
+          "101",
+          "4節"
+        ],
+        [
+          "數學 【中文】",
+          "102",
+          "4節"
+        ],
+        [
+          "數學 【中文】",
+          "201",
+          "4節"
+        ],
+        [
+          "數學 【中文】",
+          "301",
+          "4節"
+        ]
+      ],
+      "note": "依附件固定節數"
+    },
+    {
+      "code": "F",
+      "name": "教師 F",
+      "role": "STEAM／中文自然",
+      "homeroom": "跨班",
+      "periods": 8,
+      "courses": [
+        [
+          "彈性 STEAM探索 【中英雙語】",
+          "102",
+          "1節"
+        ],
+        [
+          "生活 自然觀察與證據 【中文】",
+          "102",
+          "1節"
+        ],
+        [
+          "彈性 STEAM創作 【中英雙語】",
+          "102",
+          "1節"
+        ],
+        [
+          "生活 感官與自然 【中文】",
+          "102",
+          "1節"
+        ],
+        [
+          "生活 生命與環境 【中文】",
+          "201",
+          "1節"
+        ],
+        [
+          "彈性 STEAM設計與作品集 【中英雙語】",
+          "301",
+          "1節"
+        ],
+        [
+          "自然科學 【中文】",
+          "301",
+          "2節"
+        ]
+      ],
+      "note": "依確認跨科自然"
+    },
+    {
+      "code": "G",
+      "name": "教師 G",
+      "role": "101外籍導師",
+      "homeroom": "101",
+      "periods": 16,
+      "courses": [
+        [
+          "生活 戶外任務與合作 【中英雙語】",
+          "101",
+          "1節"
+        ],
+        [
+          "彈性 英語閱讀寫作 【英語】",
+          "101",
+          "3節"
+        ],
+        [
+          "生活 圖像與律動 【英語】",
+          "101",
+          "2節"
+        ],
+        [
+          "彈性 自主學習與分享 【中英雙語】",
+          "101",
+          "1節"
+        ],
+        [
+          "彈性 STEAM探索 【中英雙語】",
+          "101",
+          "1節"
+        ],
+        [
+          "彈性 ESL任務語言 【英語】",
+          "101",
+          "3節"
+        ],
+        [
+          "彈性 冒險反思與發表 【中英雙語】",
+          "101",
+          "1節"
+        ],
+        [
+          "生活 社群與照護 【中英雙語】",
+          "101",
+          "1節"
+        ],
+        [
+          "彈性 英語繪本與表達 【英語】",
+          "101",
+          "1節"
+        ],
+        [
+          "彈性 STEAM創作 【中英雙語】",
+          "101",
+          "1節"
+        ],
+        [
+          "彈性 SEL與班級生活 【中英雙語】",
+          "101",
+          "1節"
+        ]
+      ],
+      "note": "英語與雙語任務"
+    },
+    {
+      "code": "H",
+      "name": "教師 H",
+      "role": "102外籍導師",
+      "homeroom": "102",
+      "periods": 16,
+      "courses": [
+        [
+          "彈性 英語閱讀寫作 【英語】",
+          "102",
+          "3節"
+        ],
+        [
+          "生活 戶外任務與合作 【中英雙語】",
+          "102",
+          "1節"
+        ],
+        [
+          "彈性 ESL任務語言 【英語】",
+          "102",
+          "3節"
+        ],
+        [
+          "彈性 生命教育與照護 【中英雙語】",
+          "102",
+          "1節"
+        ],
+        [
+          "彈性 冒險反思與發表 【中英雙語】",
+          "102",
+          "1節"
+        ],
+        [
+          "彈性 自主學習與分享 【中英雙語】",
+          "102",
+          "1節"
+        ],
+        [
+          "生活 圖像與律動 【英語】",
+          "102",
+          "2節"
+        ],
+        [
+          "體育 運動技能 【英語】",
+          "102",
+          "1節"
+        ],
+        [
+          "生活 社群與照護 【中英雙語】",
+          "102",
+          "1節"
+        ],
+        [
+          "彈性 英語繪本與表達 【英語】",
+          "102",
+          "1節"
+        ],
+        [
+          "彈性 SEL與班級生活 【中英雙語】",
+          "102",
+          "1節"
+        ]
+      ],
+      "note": "英語與雙語任務"
+    },
+    {
+      "code": "I",
+      "name": "教師 I",
+      "role": "201外籍導師",
+      "homeroom": "201",
+      "periods": 16,
+      "courses": [
+        [
+          "彈性 英語閱讀寫作 【英語】",
+          "201",
+          "3節"
+        ],
+        [
+          "彈性 STEAM探索 【中英雙語】",
+          "201",
+          "1節"
+        ],
+        [
+          "彈性 英語繪本與表達 【英語】",
+          "201",
+          "1節"
+        ],
+        [
+          "體育 戶外合作挑戰 【中英雙語】",
+          "201",
+          "1節"
+        ],
+        [
+          "生活 戶外任務與合作 【中英雙語】",
+          "201",
+          "1節"
+        ],
+        [
+          "彈性 SEL與班級生活 【中英雙語】",
+          "201",
+          "1節"
+        ],
+        [
+          "生活 音樂與創作 【英語】",
+          "201",
+          "2節"
+        ],
+        [
+          "彈性 ESL任務語言 【英語】",
+          "201",
+          "3節"
+        ],
+        [
+          "彈性 生命教育與照護 【中英雙語】",
+          "201",
+          "1節"
+        ],
+        [
+          "彈性 自主學習與分享 【中英雙語】",
+          "201",
+          "1節"
+        ],
+        [
+          "生活 社群與照護 【中英雙語】",
+          "201",
+          "1節"
+        ]
+      ],
+      "note": "英語與雙語任務"
+    },
+    {
+      "code": "J",
+      "name": "教師 J",
+      "role": "301外籍導師",
+      "homeroom": "301",
+      "periods": 16,
+      "courses": [
+        [
+          "彈性 ESL任務語言 【英語】",
+          "301",
+          "2節"
+        ],
+        [
+          "社會 CLIL探究 【中英雙語】",
+          "301",
+          "3節"
+        ],
+        [
+          "綜合 SEL與生活實踐 【中英雙語】",
+          "301",
+          "1節"
+        ],
+        [
+          "彈性 英語閱讀寫作 【英語】",
+          "301",
+          "4節"
+        ],
+        [
+          "綜合 戶外任務與童軍 【中英雙語】",
+          "301",
+          "1節"
+        ],
+        [
+          "彈性 冒險證據與試作 【中英雙語】",
+          "301",
+          "1節"
+        ],
+        [
+          "彈性 冒險反思與發表 【中英雙語】",
+          "301",
+          "1節"
+        ],
+        [
+          "藝術 表演藝術 【英語】",
+          "301",
+          "1節"
+        ],
+        [
+          "藝術 視覺藝術 【英語】",
+          "301",
+          "1節"
+        ],
+        [
+          "英語文 ESL 【英語】",
+          "301",
+          "1節"
+        ]
+      ],
+      "note": "英語與雙語任務"
+    },
+    {
+      "code": "K",
+      "name": "教師 K",
+      "role": "跨班人文社會",
+      "homeroom": "跨班",
+      "periods": 7,
+      "courses": [
+        [
+          "國語文 【中文】",
+          "101",
+          "1節"
+        ],
+        [
+          "國語文 【中文】",
+          "102",
+          "1節"
+        ],
+        [
+          "國語文 【中文】",
+          "201",
+          "2節"
+        ],
+        [
+          "彈性 中文閱讀 【中文】",
+          "201",
+          "1節"
+        ],
+        [
+          "國語文 【中文】",
+          "301",
+          "2節"
+        ]
+      ],
+      "note": "依附件固定節數"
+    },
+    {
+      "code": "L",
+      "name": "教師 L",
+      "role": "藝術／國語閱讀",
+      "homeroom": "跨班",
+      "periods": 12,
+      "courses": [
+        [
+          "國語文 【中文】",
+          "101",
+          "5節"
+        ],
+        [
+          "國語文 【中文】",
+          "102",
+          "2節"
+        ],
+        [
+          "彈性 中文閱讀 【中文】",
+          "102",
+          "1節"
+        ],
+        [
+          "國語文 【中文】",
+          "201",
+          "1節"
+        ],
+        [
+          "彈性 中文閱讀 【中文】",
+          "301",
+          "1節"
+        ],
+        [
+          "國語文 【中文】",
+          "301",
+          "1節"
+        ],
+        [
+          "藝術 音樂 【英語】",
+          "301",
+          "1節"
+        ]
+      ],
+      "note": "依確認跨科國語與閱讀"
+    },
+    {
+      "code": "M",
+      "name": "教師 M",
+      "role": "跨班體育／戶外",
+      "homeroom": "跨班",
+      "periods": 10,
+      "courses": [
+        [
+          "體育 運動技能 【英語】",
+          "101",
+          "1節"
+        ],
+        [
+          "健康教育 【中英雙語】",
+          "101",
+          "1節"
+        ],
+        [
+          "體育 戶外合作挑戰 【中英雙語】",
+          "102",
+          "1節"
+        ],
+        [
+          "健康教育 【中英雙語】",
+          "102",
+          "1節"
+        ],
+        [
+          "體育 運動技能 【英語】",
+          "201",
+          "1節"
+        ],
+        [
+          "彈性 冒險反思與發表 【中英雙語】",
+          "201",
+          "1節"
+        ],
+        [
+          "健康教育 【中英雙語】",
+          "201",
+          "1節"
+        ],
+        [
+          "體育 戶外合作挑戰 【中英雙語】",
+          "301",
+          "1節"
+        ],
+        [
+          "體育 運動技能 【英語】",
+          "301",
+          "1節"
+        ],
+        [
+          "健康教育 【中英雙語】",
+          "301",
+          "1節"
+        ]
+      ],
+      "note": "依附件固定節數"
+    }
+  ]
+};
   window.REEDS_FIRST_YEAR_STAFFING = plan;
 
   const style=document.createElement('style');
@@ -42,16 +649,13 @@
 function renderFirstYearStaffing(el){
   const p=REEDS_FIRST_YEAR_STAFFING;
   const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-  const ftCt=p.teachers.filter(t=>t.employment==='全職中師').length;
-  const ftEt=p.teachers.filter(t=>t.employment==='全職外師').length;
-  const pt=p.teachers.filter(t=>t.employment==='專業兼任').length;
-  const periodTotal=p.teachers.reduce((a,t)=>a+t.periods,0);
+  const total=p.teachers.reduce((sum,t)=>sum+t.periods,0);
   el.innerHTML=`
-    <section class="staff-hero"><div class="kicker">YEAR 1 · TEACHING ASSIGNMENT</div><h2>${esc(p.title)}</h2><p>${esc(p.subtitle)}；外師導師每週16節，主任每週4節，組長每週9節。</p></section>
-    <div class="staff-overview"><div class="staff-stat primary"><strong>${p.teachers.length}</strong><span>第一年教師總人數</span><div class="breakdown">${ftCt}位全職中師＋${ftEt}位全職外師＋${pt}位專業兼任</div></div><div class="staff-stat"><strong>${ftCt+ftEt}</strong><span>全職教師<br>${ftCt}位中師＋${ftEt}位外師</span></div><div class="staff-stat"><strong>${pt}</strong><span>專業兼任教師<br>人文、藝術、戶外</span></div><div class="staff-stat"><strong>${p.classes.length}</strong><span>第一年招生班級<br>一至三年級</span></div></div>
-    <div class="staff-equation"><b>編制公式｜${p.teachers.length}位教師＝${ftCt+ftEt}位全職＋${pt}位兼任</b><div class="staff-equation-note">雙導師共8席由上述13人中的4位中師與4位外師擔任，不另外加計。</div></div>
-    <div class="staff-section-title">四班雙導師配置 <span class="teacher-code">｜每班1位中師＋1位外師，均已包含於13位總編制</span></div><div class="dual-grid">${p.classes.map(c=>`<article class="dual-card"><h4>${esc(c.name)}</h4><div class="mentor-line"><span class="mentor-tag">中師</span><span>${esc(c.chinese)}</span></div><div class="mentor-line"><span class="mentor-tag en">外師</span><span>${esc(c.english)}</span></div></article>`).join('')}</div>
-    <div class="staff-section-title">每位教師授課與職務</div><div class="staff-table-wrap"><table class="staff-table"><thead><tr><th style="width:12%">教師</th><th style="width:13%">職務／聘任</th><th style="width:7%">導師班</th><th style="width:7%">週節數</th><th style="width:34%">課別、班級與節數</th><th>非授課責任</th></tr></thead><tbody>${p.teachers.map(t=>`<tr><td><div class="teacher-name">${esc(t.name)}</div><div class="teacher-code">${esc(t.code)}</div></td><td>${esc(t.role)}<br><span class="employment ${t.employment==='專業兼任'?'pt':''}">${esc(t.employment)}</span></td><td>${esc(t.homeroom)}</td><td><span class="period-num">${t.periods}</span> 節</td><td>${t.courses.map(c=>`<div class="course-line"><b>${esc(c[0])}</b>｜${esc(c[1])}｜${esc(c[2])}</div>`).join('')}</td><td>${esc(t.duties)}</td></tr>`).join('')}</tbody></table></div>
-    <div class="staff-checks"><div class="staff-check">✓ 兩位主任：每人4節</div><div class="staff-check">✓ 三位組長：每人9節</div><div class="staff-check">✓ 四位外師導師：每人16節</div></div>
-    <div class="staff-note"><b>節數說明：</b>全體教師每週共 ${periodTotal} 個教師授課節次；四班基礎課表共140班級節次，另含資訊組長1節數位Portfolio協同教學，因此教師節次為141。兼任教師以專業課別排課，不擔任班級導師。</div>`;
+    <section class="staff-hero"><div class="kicker">YEAR 1 · TEACHING ASSIGNMENT</div><h2>${esc(p.title)}</h2><p>${esc(p.subtitle)}；每班每週35節，每日7節。</p></section>
+    <div class="staff-overview"><div class="staff-stat primary"><strong>${p.teachers.length}</strong><span>第一年教師總人數</span><div class="breakdown">4位中文導師＋4位外籍導師＋5位跨班科任</div></div><div class="staff-stat"><strong>8</strong><span>雙導師席次<br>4位中文＋4位外籍</span></div><div class="staff-stat"><strong>5</strong><span>跨班科任教師<br>E、F、K、L、M</span></div><div class="staff-stat"><strong>${total}</strong><span>每週教師主責節次<br>4班 × 35節</span></div></div>
+    <div class="staff-equation"><b>編制公式｜13位教師＝8位導師＋5位跨班科任</b><div class="staff-equation-note">依來源分工呈現；來源未列全兼任聘任別與行政職稱。</div></div>
+    <div class="staff-section-title">四班雙導師配置</div><div class="dual-grid">${p.classes.map(c=>`<article class="dual-card"><h4>${esc(c.name)}</h4><div class="mentor-line"><span class="mentor-tag">中文導師</span><span>${esc(c.chinese)}</span></div><div class="mentor-line"><span class="mentor-tag en">外籍導師</span><span>${esc(c.english)}</span></div></article>`).join('')}</div>
+    <div class="staff-section-title">每位教師分工與固定授課節數</div><div class="staff-table-wrap"><table class="staff-table"><thead><tr><th>教師</th><th>本次分工</th><th>導師班</th><th>週節數</th><th>課別、授課語言、班級與節數</th><th>來源說明</th></tr></thead><tbody>${p.teachers.map(t=>`<tr><td><div class="teacher-name">${esc(t.name)}</div></td><td>${esc(t.role)}</td><td>${esc(t.homeroom)}</td><td><span class="period-num">${t.periods}</span> 節</td><td>${t.courses.map(c=>`<div class="course-line"><b>${esc(c[0])}</b>｜${esc(c[1])}班｜${esc(c[2])}</div>`).join('')}</td><td>${esc(t.note)}</td></tr>`).join('')}</tbody></table></div>
+    <div class="staff-checks"><div class="staff-check">✓ 四班各35節，共140節</div><div class="staff-check">✓ A–M均符合固定節數</div><div class="staff-check">✓ 逐教師、逐時段無衝堂</div></div>
+    <div class="staff-note"><b>配課說明：</b>每節由一位主責教師獨立授課，教師主責合計 ${total} 節。F跨科自然，L跨科國語與閱讀。週五全天於陽明山，各班獨立授課；交通、集合、行政、備課、午休照護及戶外安全協同人力不計入授課節數。教師可到校時段與場地仍須確認。<br>本土語文／臺灣手語暫列中文導師代碼，須依選修語別與授課資格確認；師資未符合時須安排合格教師替代。<br><b>資料來源：</b>REEDS_四班課表與教師配課_固定節數版.xlsx（四班配課總覽、101／102／201／301班課表）。</div>`;
 }
